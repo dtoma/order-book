@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Create build directory
+      run: mkdir build
+    - name: CMake file generation
+      run: cd build && cmake ..
+    - name: Build
+      run: cd build && cmake --build .
+    - name: Test
+      run: cd build && ctest
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Create build directory
+      run: mkdir build
+    - name: CMake file generation
+      run: cd build && cmake ..
+    - name: Build
+      run: cd build && cmake --build .
+    - name: Test
+      run: cd build && ctest
