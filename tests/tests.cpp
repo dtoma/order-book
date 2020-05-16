@@ -2,6 +2,7 @@
 #include "order_book.h"
 
 namespace {
+// TODO: Fixtures
 Order order_1{100000, OrderSide::SELL, 1, 1075};
 Order order_2{100001, OrderSide::BUY, 9, 1000};
 Order order_3{100002, OrderSide::BUY, 30, 975};
@@ -86,15 +87,59 @@ TEST(TestOrderBook, TestBidExecutionMultipleMatches) {
     ASSERT_TRUE(order_book.bids.empty());
     ASSERT_TRUE(order_book.asks.empty());
 
-    ask(order_book, Order{1, OrderSide::SELL, 5, 110});
-    ask(order_book, Order{2, OrderSide::SELL, 10, 110});
-    ask(order_book, Order{3, OrderSide::SELL, 3, 105});
-    ask(order_book, Order{4, OrderSide::SELL, 7, 105});
+    Order ask1{1, OrderSide::SELL, 5, 110};
+    ask(order_book, ask1);
+    Order ask2{2, OrderSide::SELL, 10, 110};
+    ask(order_book, ask2);
+    Order ask3{3, OrderSide::SELL, 3, 105};
+    ask(order_book, ask3);
+    Order ask4{4, OrderSide::SELL, 7, 105};
+    ask(order_book, ask4);
     ASSERT_EQ(order_book.asks[110].size(), 2);
     ASSERT_EQ(order_book.asks[105].size(), 2);
 
-    bid(order_book, Order{5, OrderSide::BUY, 4, 105});
+    Order bid1{5, OrderSide::BUY, 4, 105};
+    bid(order_book, bid1);
     ASSERT_TRUE(order_book.bids.empty());
     ASSERT_EQ(order_book.asks[105].size(), 1);
     ASSERT_EQ(order_book.asks[105].front().quantity, 6);
+}
+
+/**
+ * =================
+ * ASK
+ * 110: 5 10
+ * 105: 6
+ * ------------
+ * 100: 4 6
+ * 90: 10 2 3
+ * BID
+ * =================
+ */
+TEST(TestOrderBook, TestAskExecutionMultipleMatches) {
+    OrderBook order_book;
+    ASSERT_TRUE(order_book.bids.empty());
+    ASSERT_TRUE(order_book.asks.empty());
+
+    Order ask1{1, OrderSide::SELL, 5, 110};
+    ask(order_book, ask1);
+    Order ask2{2, OrderSide::SELL, 10, 110};
+    ask(order_book, ask2);
+    Order ask3{3, OrderSide::SELL, 6, 105};
+    ask(order_book, ask3);
+    ASSERT_EQ(order_book.asks[110].size(), 2);
+    ASSERT_EQ(order_book.asks[105].size(), 1);
+
+    Order bid1{4, OrderSide::BUY, 4, 100};
+    bid(order_book, bid1);
+    Order bid2{5, OrderSide::BUY, 6, 100};
+    bid(order_book, bid2);
+    Order bid3{6, OrderSide::BUY, 10, 90};
+    bid(order_book, bid3);
+    Order bid4{7, OrderSide::BUY, 2, 90};
+    bid(order_book, bid4);
+    Order bid5{8, OrderSide::BUY, 3, 90};
+    bid(order_book, bid5);
+    ASSERT_EQ(order_book.bids[100].size(), 2);
+    ASSERT_EQ(order_book.bids[90].size(), 3);
 }

@@ -42,9 +42,10 @@ void bid(OrderBook& order_book, Order& order) {
      * While we have orders at or above `order.price`,
      * execute.
      */
-    auto can_exec = order_book.asks.lower_bound(order.price);
-
-    for (; can_exec != order_book.asks.end(); ++can_exec) {
+    for (auto can_exec = std::begin(order_book.asks);
+         can_exec != std::end(order_book.asks) &&
+         can_exec->first <= order.price;
+         ++can_exec) {
         auto& asks = can_exec->second;
         while (order.quantity > 0) {
             auto match = asks.begin();
@@ -57,7 +58,7 @@ void bid(OrderBook& order_book, Order& order) {
                 fmt::print("{} shares were sold at {} USD\n", order.quantity,
                            match->price);
                 fmt::print("Order partially executed ({} out of {})\n",
-                           match->quantity, order.quantity + match->quantity);
+                           match->quantity, order.quantity);
                 order.quantity -= match->quantity;
                 match = asks.erase(match);
                 if (asks.empty()) {
@@ -78,5 +79,38 @@ void bid(OrderBook& order_book, Order& order) {
 }
 
 void ask(OrderBook& order_book, Order& order) {
+    for (auto can_exec = std::begin(order_book.bids);
+         can_exec != std::end(order_book.bids) &&
+         can_exec->first >= order.price;
+         ++can_exec) {
+        auto& bids = can_exec->second;
+        while (order.quantity > 0) {
+            auto match = bids.begin();
+            if (match->quantity > order.quantity) {
+                fmt::print("{} shares were sold at {} USD\n", order.quantity,
+                           match->price);
+                match->quantity -= order.quantity;
+                return;
+            } else if (match->quantity < order.quantity) {
+                fmt::print("{} shares were sold at {} USD\n", order.quantity,
+                           match->price);
+                fmt::print("Order partially executed ({} out of {})\n",
+                           match->quantity, order.quantity);
+                order.quantity -= match->quantity;
+                match = bids.erase(match);
+                if (bids.empty()) {
+                    order_book.bids.erase(can_exec);
+                }
+            } else {
+                fmt::print("{} shares were sold at {} USD\n", order.quantity,
+                           match->price);
+                match = bids.erase(match);
+                if (bids.empty()) {
+                    order_book.bids.erase(can_exec);
+                }
+                return;
+            }
+        }
+    }
     order_book.asks[order.price].push_back(order);
 }
