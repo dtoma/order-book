@@ -1,0 +1,5 @@
+add_executable(order_book_tests tests.cpp)
+
+target_link_libraries(order_book_tests PRIVATE gtest_main order_book)
+
+gtest_discover_tests(order_book_tests)

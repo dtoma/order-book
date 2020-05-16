@@ -1,6 +1,10 @@
-add_executable(book main.cpp)
-target_link_libraries(book fmt::fmt)
+add_library(order_book STATIC src/order_book.cpp include/order_book.h)
 
-add_executable(bookTests tests.cpp)
-target_link_libraries(bookTests PRIVATE gtest_main)
-gtest_discover_tests(bookTests)
+target_link_libraries(order_book fmt::fmt)
+target_include_directories(order_book PUBLIC include)
+
+if(MSVC)
+  target_compile_options(order_book PRIVATE /W4 /WX)
+else()
+  target_compile_options(order_book PRIVATE -Wall -Wextra -pedantic -Werror)
+endif()

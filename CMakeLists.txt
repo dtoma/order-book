@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(cpp)
+project(OrderBook)
 
 include(GoogleTest)
 
@@ -15,3 +15,4 @@ add_subdirectory(dependencies)
 
 # Internal projects
 add_subdirectory(book)
+add_subdirectory(tests)
