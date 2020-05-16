@@ -1,15 +1,10 @@
 #pragma once
 
+#include <list>
 #include <map>
 
-struct Price {
-    int value;
-};
-
-struct Quantity {
-    int value;
-};
-
+using Price = int;
+using Quantity = int;
 enum class OrderSide { BUY, SELL };
 
 struct Order {
@@ -19,4 +14,19 @@ struct Order {
     Price price;
 };
 
-std::map<int, int> bids, asks;
+inline bool operator==(Order const& left, Order const& right) {
+    return left.id == right.id && left.side == right.side &&
+           left.quantity == right.quantity && left.price == right.price;
+}
+
+using Book = std::map<Price, std::list<Order>>;
+
+struct OrderBook {
+    Book bids;
+    Book asks;
+};
+
+void display(Book const&);
+void cleanup(Book&);
+void bid(OrderBook&, Order&);
+void ask(OrderBook&, Order&);
