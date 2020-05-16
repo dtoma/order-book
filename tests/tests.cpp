@@ -39,6 +39,8 @@ TEST(TestOrderBook, TestBidExecutionSimpleMatch) {
     ASSERT_EQ(order_book.asks[order_sell.price].front(), order_sell);
 
     bid(order_book, order_buy);
+    display(order_book.bids);
+    display(order_book.asks);
     ASSERT_TRUE(order_book.bids.empty());
     ASSERT_TRUE(order_book.asks.empty());
 }
@@ -142,4 +144,15 @@ TEST(TestOrderBook, TestAskExecutionMultipleMatches) {
     bid(order_book, bid5);
     ASSERT_EQ(order_book.bids[100].size(), 2);
     ASSERT_EQ(order_book.bids[90].size(), 3);
+
+    Order ask_should_execute{9, OrderSide::SELL, 23, 80};
+    ask(order_book, ask_should_execute);
+
+    /* Should be in the reverse order:
+        4: 10 shares were sold at 90 USD
+        4: 2 shares were sold at 90 USD
+        4: 3 shares were sold at 90 USD
+        4: 4 shares were sold at 100 USD
+        4: 4 shares were sold at 100 USD
+    */
 }

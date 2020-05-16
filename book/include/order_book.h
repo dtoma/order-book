@@ -28,5 +28,6 @@ struct OrderBook {
 
 void display(Book const&);
 void cleanup(Book&);
+auto execute_at_limit(std::list<Order>&, Order&);
 void bid(OrderBook&, Order&);
 void ask(OrderBook&, Order&);
