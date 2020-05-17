@@ -5,12 +5,13 @@
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/spdlog.h"
 
-/**
- * Helper functions
- */
+//! Local helper functions
 namespace {
 
-// http://tristanbrindle.com/posts/a-quicker-study-on-tokenising/
+/** \brief Tokenize an iterable using a given separator & callable.
+ *
+ * From: http://tristanbrindle.com/posts/a-quicker-study-on-tokenising/
+ */
 template <typename Iterator, typename Lambda>
 void for_each_token(Iterator &&first, Iterator &&last, char separator,
                     Lambda &&lambda) {
@@ -27,6 +28,7 @@ void for_each_token(Iterator &&first, Iterator &&last, char separator,
     }
 }
 
+//! Build an Order object from string values.
 ob::Order order_from_strings(std::string id, std::string side,
                              std::string quantity, std::string price) {
     return {std::stoi(id),
@@ -34,6 +36,7 @@ ob::Order order_from_strings(std::string id, std::string side,
             std::stoi(quantity), std::stoi(price)};
 }
 
+//! Print a table (templated to support maps with different orderings)
 template <typename T>
 void show_table(T const &table) {
     for (auto const &p : table) {
@@ -73,37 +76,41 @@ void OrderBook::show_asks() const {
 
 auto OrderBook::execute_at_limit(std::vector<Order> &limit_orders,
                                  Order &order) {
-    for (auto match = std::begin(limit_orders);
-         match != std::end(limit_orders) && order.quantity > 0;) {
-        if (match->quantity > order.quantity) {
-            spdlog::info("{} shares were sold at {} USD", order.quantity,
-                         match->price);
-            match->quantity -= order.quantity;
+    auto potential_match = std::begin(limit_orders);
+    while (potential_match != std::end(limit_orders) && order.quantity > 0) {
+        if (potential_match->quantity > order.quantity) {
+            // Full execution, leftover quantity in the book
+            spdlog::info("{} shares sold at {}", order.quantity,
+                         potential_match->price);
+            potential_match->quantity -= order.quantity;
             order.quantity = 0;
             return;
-        } else if (match->quantity < order.quantity) {
-            spdlog::info("{} shares were sold at {} USD", match->quantity,
-                         match->price);
-            order.quantity -= match->quantity;
-            match = limit_orders.erase(match);
+        } else if (potential_match->quantity < order.quantity) {
+            // Partial execution
+            spdlog::info("{} shares sold at {}", potential_match->quantity,
+                         potential_match->price);
+            order.quantity -= potential_match->quantity;
+            potential_match = limit_orders.erase(potential_match);
         } else {
-            spdlog::info("{} shares were sold at {} USD", order.quantity,
-                         match->price);
-            order.quantity -= match->quantity;
-            match = limit_orders.erase(match);
+            // Full execution without leftover quantity in the book
+            spdlog::info("{} shares sold at {}", order.quantity,
+                         potential_match->price);
+            order.quantity -= potential_match->quantity;
+            potential_match = limit_orders.erase(potential_match);
             return;
         }
     }
 }
 
 void OrderBook::bid(Order &order) {
-    for (auto can_exec = std::begin(this->asks);
-         can_exec != std::end(this->asks) && can_exec->first <= order.price;) {
-        this->execute_at_limit(can_exec->second, order);
-        if (can_exec->second.empty()) {
-            can_exec = this->asks.erase(can_exec);
+    auto limit = std::begin(this->asks);
+    auto stop = std::end(this->asks);
+    while (limit != stop && limit->first <= order.price) {
+        this->execute_at_limit(limit->second, order);
+        if (limit->second.empty()) {
+            limit = this->asks.erase(limit);
         } else {
-            ++can_exec;
+            ++limit;
         }
     }
     if (order.quantity > 0) {
@@ -114,13 +121,13 @@ void OrderBook::bid(Order &order) {
 }
 
 void OrderBook::ask(Order &order) {
-    for (auto can_exec = std::begin(this->bids);
-         can_exec != std::end(this->bids) && can_exec->first >= order.price;) {
-        execute_at_limit(can_exec->second, order);
-        if (can_exec->second.empty()) {
-            can_exec = this->bids.erase(can_exec);
+    auto limit = std::begin(this->bids);
+    while (limit != std::end(this->bids) && limit->first >= order.price) {
+        execute_at_limit(limit->second, order);
+        if (limit->second.empty()) {
+            limit = this->bids.erase(limit);
         } else {
-            ++can_exec;
+            ++limit;
         }
     }
     if (order.quantity > 0) {

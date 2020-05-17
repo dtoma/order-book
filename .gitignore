@@ -33,3 +33,6 @@
 
 # CMake
 build/
+
+# Doxygen
+docs/latex/
