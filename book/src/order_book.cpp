@@ -36,7 +36,24 @@ ob::Order order_from_strings(std::string id, std::string side,
             std::stoi(quantity), std::stoi(price)};
 }
 
-//! Print a table (templated to support maps with different orderings)
+/** \brief Print a table (templated to support maps with different orderings)
+ *
+ * Example output:
+ * [2020-05-17 17:15:05.526] [info] ===== Bids =====
+ * [2020-05-17 17:15:05.526] [info]   1050:
+ * [2020-05-17 17:15:05.526] [info]   1000:
+ * [2020-05-17 17:15:05.526] [info]     9 #100001
+ * [2020-05-17 17:15:05.543] [info]     1 #100006
+ * [2020-05-17 17:15:05.543] [info]   975:
+ * [2020-05-17 17:15:05.543] [info]     30 #100002
+ * [2020-05-17 17:15:05.543] [info] ===== Asks =====
+ * [2020-05-17 17:15:05.543] [info]   1025:
+ * [2020-05-17 17:15:05.543] [info]     4 #100007
+ * [2020-05-17 17:15:05.543] [info]   1050:
+ * [2020-05-17 17:15:05.543] [info]     10 #100003
+ * [2020-05-17 17:15:05.543] [info]   1075:
+ * [2020-05-17 17:15:05.543] [info]     1 #100000
+ */
 template <typename T>
 void show_table(T const &table) {
     for (auto const &p : table) {
