@@ -1,6 +1,8 @@
 #include "gtest/gtest.h"
 #include "order_book.h"
 
+using namespace ob;
+
 namespace {
 // TODO: Fixtures
 Order order_1{100000, OrderSide::SELL, 1, 1075};
@@ -20,10 +22,10 @@ TEST(TestOrderBook, TestAddOrders) {
     Order order_buy{1, OrderSide::BUY, 10, 5};
     Order order_sell{2, OrderSide::SELL, 10, 10};
 
-    bid(order_book, order_buy);
+    order_book.bid(order_buy);
     ASSERT_EQ(order_book.bids[order_buy.price].front(), order_buy);
 
-    ask(order_book, order_sell);
+    order_book.ask(order_sell);
     ASSERT_EQ(order_book.asks[order_sell.price].front(), order_sell);
 }
 
@@ -35,12 +37,10 @@ TEST(TestOrderBook, TestBidExecutionSimpleMatch) {
     Order order_buy{1, OrderSide::BUY, 10, 5};
     Order order_sell{2, OrderSide::SELL, 10, 5};
 
-    ask(order_book, order_sell);
+    order_book.ask(order_sell);
     ASSERT_EQ(order_book.asks[order_sell.price].front(), order_sell);
 
-    bid(order_book, order_buy);
-    display(order_book.bids);
-    display(order_book.asks);
+    order_book.bid(order_buy);
     ASSERT_TRUE(order_book.bids.empty());
     ASSERT_TRUE(order_book.asks.empty());
 }
@@ -90,18 +90,18 @@ TEST(TestOrderBook, TestBidExecutionMultipleMatches) {
     ASSERT_TRUE(order_book.asks.empty());
 
     Order ask1{1, OrderSide::SELL, 5, 110};
-    ask(order_book, ask1);
+    order_book.ask(ask1);
     Order ask2{2, OrderSide::SELL, 10, 110};
-    ask(order_book, ask2);
+    order_book.ask(ask2);
     Order ask3{3, OrderSide::SELL, 3, 105};
-    ask(order_book, ask3);
+    order_book.ask(ask3);
     Order ask4{4, OrderSide::SELL, 7, 105};
-    ask(order_book, ask4);
+    order_book.ask(ask4);
     ASSERT_EQ(order_book.asks[110].size(), 2);
     ASSERT_EQ(order_book.asks[105].size(), 2);
 
     Order bid1{5, OrderSide::BUY, 4, 105};
-    bid(order_book, bid1);
+    order_book.bid(bid1);
     ASSERT_TRUE(order_book.bids.empty());
     ASSERT_EQ(order_book.asks[105].size(), 1);
     ASSERT_EQ(order_book.asks[105].front().quantity, 6);
@@ -124,35 +124,86 @@ TEST(TestOrderBook, TestAskExecutionMultipleMatches) {
     ASSERT_TRUE(order_book.asks.empty());
 
     Order ask1{1, OrderSide::SELL, 5, 110};
-    ask(order_book, ask1);
+    order_book.ask(ask1);
     Order ask2{2, OrderSide::SELL, 10, 110};
-    ask(order_book, ask2);
+    order_book.ask(ask2);
     Order ask3{3, OrderSide::SELL, 6, 105};
-    ask(order_book, ask3);
+    order_book.ask(ask3);
     ASSERT_EQ(order_book.asks[110].size(), 2);
     ASSERT_EQ(order_book.asks[105].size(), 1);
 
     Order bid1{4, OrderSide::BUY, 4, 100};
-    bid(order_book, bid1);
+    order_book.bid(bid1);
     Order bid2{5, OrderSide::BUY, 6, 100};
-    bid(order_book, bid2);
+    order_book.bid(bid2);
     Order bid3{6, OrderSide::BUY, 10, 90};
-    bid(order_book, bid3);
+    order_book.bid(bid3);
     Order bid4{7, OrderSide::BUY, 2, 90};
-    bid(order_book, bid4);
+    order_book.bid(bid4);
     Order bid5{8, OrderSide::BUY, 3, 90};
-    bid(order_book, bid5);
+    order_book.bid(bid5);
     ASSERT_EQ(order_book.bids[100].size(), 2);
     ASSERT_EQ(order_book.bids[90].size(), 3);
 
     Order ask_should_execute{9, OrderSide::SELL, 23, 80};
-    ask(order_book, ask_should_execute);
+    order_book.ask(ask_should_execute);
+}
 
-    /* Should be in the reverse order:
-        4: 10 shares were sold at 90 USD
-        4: 2 shares were sold at 90 USD
-        4: 3 shares were sold at 90 USD
-        4: 4 shares were sold at 100 USD
-        4: 4 shares were sold at 100 USD
-    */
+/**
+ * =================
+ * ASK
+ * 110: 5 10
+ * 105: 6
+ * ------------
+ * 90: 2
+ * BID
+ * =================
+
+ * Now let’s say we have got a new buy order of 8 shares at the price 107 USD.
+ * We will see trade:
+ * 6 shares of XYZ were sold at 105 USD:
+
+ * =================
+ * ASK
+ * 110: 5 10
+ * ------------
+ * 90: 2
+ * BID
+ * =================
+
+ * We still have 2 more shares from a buyer who is willing to buy no higher than
+ * 107 USD but the best sell order right now is at 110 USD so we place a new
+ order
+ * at the level of 107 USD and the order book will look like:
+
+ * =================
+ * ASK
+ * 110: 5 10
+ * ------------
+ * 107: 2
+ * 90: 2
+ * BID
+ * =================
+ */
+TEST(TestOrderBook, TestAskExecutionLeftovers) {
+    OrderBook order_book;
+    ASSERT_TRUE(order_book.bids.empty());
+    ASSERT_TRUE(order_book.asks.empty());
+
+    Order ask1{1, OrderSide::SELL, 5, 110};
+    order_book.ask(ask1);
+    Order ask2{2, OrderSide::SELL, 10, 110};
+    order_book.ask(ask2);
+    Order ask3{3, OrderSide::SELL, 6, 105};
+    order_book.ask(ask3);
+    ASSERT_EQ(order_book.asks[110].size(), 2);
+    ASSERT_EQ(order_book.asks[105].size(), 1);
+
+    Order bid1{4, OrderSide::BUY, 2, 90};
+    order_book.bid(bid1);
+    ASSERT_EQ(order_book.bids[90].size(), 1);
+
+    Order bid_should_execute{5, OrderSide::BUY, 8, 107};
+    order_book.bid(bid_should_execute);
+    ASSERT_EQ(order_book.bids[107].size(), 1);
 }

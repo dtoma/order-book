@@ -3,11 +3,13 @@
 #include <list>
 #include <map>
 
+namespace ob {
+
 using Price = int;
 using Quantity = int;
 enum class OrderSide { BUY, SELL };
 
-struct Order {
+struct Order final {
     int id;
     OrderSide side;
     Quantity quantity;
@@ -19,15 +21,19 @@ inline bool operator==(Order const& left, Order const& right) {
            left.quantity == right.quantity && left.price == right.price;
 }
 
-using Book = std::map<Price, std::list<Order>>;
+using Asks = std::map<Price, std::list<Order>>;
+using Bids = std::map<Price, std::list<Order>, std::greater<Price>>;
 
-struct OrderBook {
-    Book bids;
-    Book asks;
+struct OrderBook final {
+    Bids bids;
+    Asks asks;
+
+    void show_bids() const;
+    void show_asks() const;
+
+    auto execute_at_limit(std::list<Order>&, Order&);
+    void bid(Order&);
+    void ask(Order&);
 };
 
-void display(Book const&);
-void cleanup(Book&);
-auto execute_at_limit(std::list<Order>&, Order&);
-void bid(OrderBook&, Order&);
-void ask(OrderBook&, Order&);
+}  // namespace ob
