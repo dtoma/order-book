@@ -1,8 +1,7 @@
 #pragma once
 
-#include "fixtures.h"
-
 namespace obt {
+
 TEST_F(OrderBookTest, TestAddOrders) {
     int bid_price = 5;
     ob::Order order_buy{1, ob::OrderSide::BUY, 10, bid_price};
@@ -18,4 +17,5 @@ TEST_F(OrderBookTest, TestAddOrders) {
     auto expected_asks = ob::Asks{{ask_price, {order_sell}}};
     ASSERT_EQ(order_book.asks, expected_asks);
 }
+
 }

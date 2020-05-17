@@ -64,6 +64,30 @@ void show_table(T const &table) {
     }
 }
 
+/** \brief Erase an order from a limit (if it exists)
+ *
+ * We use different types for bids and asks so we need a generic function.
+ */
+template <typename Table>
+auto erase_order(Table &table, ob::Order const &order) {
+    auto find_limit = table.find(order.price);
+    if (find_limit == std::end(table)) {
+        spdlog::info("No orders at price={}", order.price);
+        return;
+    }
+    auto &limit = find_limit->second;
+    auto to_delete = std::find_if(std::begin(limit), std::end(limit),
+                                  [&](auto o) { return o.id == order.id; });
+    if (to_delete == std::end(limit)) {
+        spdlog::info("Order id={} price={} not found", order.id, order.price);
+        return;
+    }
+    limit.erase(to_delete);
+    spdlog::info("Cancelled order id={}", order.id);
+    if (limit.empty()) {
+        table.erase(order.price);
+    }
+}
 }  // namespace
 
 /**
@@ -97,21 +121,26 @@ auto OrderBook::execute_at_limit(std::vector<Order> &limit_orders,
     while (potential_match != std::end(limit_orders) && order.quantity > 0) {
         if (potential_match->quantity > order.quantity) {
             // Full execution, leftover quantity in the book
-            spdlog::info("{} shares sold at {}", order.quantity,
-                         potential_match->price);
+            spdlog::info(
+                "{} shares sold at {} (book order id={} partially filled, {} "
+                "remaining)",
+                order.quantity, potential_match->price, potential_match->id,
+                potential_match->quantity - order.quantity);
             potential_match->quantity -= order.quantity;
             order.quantity = 0;
             return;
         } else if (potential_match->quantity < order.quantity) {
             // Partial execution
-            spdlog::info("{} shares sold at {}", potential_match->quantity,
-                         potential_match->price);
+            spdlog::info("{} shares sold at {} (book order id={} fully filled)",
+                         potential_match->quantity, potential_match->price,
+                         potential_match->id);
             order.quantity -= potential_match->quantity;
             potential_match = limit_orders.erase(potential_match);
         } else {
             // Full execution without leftover quantity in the book
-            spdlog::info("{} shares sold at {}", order.quantity,
-                         potential_match->price);
+            spdlog::info("{} shares sold at {} (book order id={} fully filled)",
+                         order.quantity, potential_match->price,
+                         potential_match->id);
             order.quantity -= potential_match->quantity;
             potential_match = limit_orders.erase(potential_match);
             return;
@@ -155,41 +184,29 @@ void OrderBook::ask(Order &order) {
 }
 
 void OrderBook::place_order(Order &order) {
-    if (order.side == ob::OrderSide::BUY) {
-        this->bid(order);
-    } else if (order.side == ob::OrderSide::SELL) {
-        this->ask(order);
+    // Since we use an enum, we would get a warning if our switch wasn't
+    // exhaustive
+    switch (order.side) {
+        case OrderSide::BUY:
+            this->bid(order);
+            break;
+        case OrderSide::SELL:
+            this->ask(order);
+            break;
     }
 }
 
 void OrderBook::cancel(Order const &order) {
     spdlog::info("Trying to cancel id={}", order.id);
-    if (order.side == OrderSide::BUY) {
-        auto limit = this->bids[order.price];
-        auto to_delete = std::find_if(std::begin(limit), std::end(limit),
-                                      [&](auto o) { return o.id == order.id; });
-        if (to_delete == std::end(limit)) {
-            spdlog::info("Order id={} not found", order.id);
-            return;
-        }
-        limit.erase(to_delete);
-        spdlog::info("Cancelled order id={}", order.id);
-        if (limit.empty()) {
-            this->bids.erase(order.price);
-        }
-    } else if (order.side == OrderSide::SELL) {
-        auto limit = this->asks[order.price];
-        auto to_delete = std::find_if(std::begin(limit), std::end(limit),
-                                      [&](auto o) { return o.id == order.id; });
-        if (to_delete == std::end(limit)) {
-            spdlog::info("Order id={} not found", order.id);
-            return;
-        }
-        limit.erase(to_delete);
-        spdlog::info("Cancelled order id={}", order.id);
-        if (limit.empty()) {
-            this->asks.erase(order.price);
-        }
+    // Since we use an enum, we would get a warning if our switch wasn't
+    // exhaustive
+    switch (order.side) {
+        case OrderSide::BUY:
+            erase_order(this->bids, order);
+            break;
+        case OrderSide::SELL:
+            erase_order(this->asks, order);
+            break;
     }
 }
 

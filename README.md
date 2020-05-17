@@ -52,3 +52,5 @@ The order book is implemented as a library. The main executables link against th
 - Use the order of the map keys to hit the right limits faster instead of iterating too much
 - Send events when trades/cancels happen
 - Enforce more invariants eg. unique order IDs
+- Better test scenarios, property tests
+- structured logging

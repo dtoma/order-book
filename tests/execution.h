@@ -1,8 +1,7 @@
 #pragma once
 
-#include "fixtures.h"
-
 namespace obt {
+
 TEST_F(OrderBookTest, TestBidExecutionSimpleMatch) {
     ob::Order order_buy{1, ob::OrderSide::BUY, 10, 5};
     ob::Order order_sell{2, ob::OrderSide::SELL, 10, 5};
@@ -179,4 +178,5 @@ TEST_F(OrderBookTest, TestAskExecutionLeftovers) {
     };
     ASSERT_EQ(order_book.asks, expected_remaining_asks);
 }
+
 }  // namespace obt
