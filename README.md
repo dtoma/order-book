@@ -27,22 +27,24 @@ Some simple benchmarks are included for basic scenarios.
 
 ## Project organization
 
-The order book is implemented as a library. The main executable and the test suite link against this library.
+The order book is implemented as a library. The main executables link against this library.
 
 ```
               +---------------+
-              |               |
-          +--->  Order Book   <-------+
-          |   |               |       |
-          |   +---------------+       |
-          |                           |
-          |                           |
-          |                           |
-+---------+---+               +-------+--------+
-|             |               |                |
-|    Main     |               |     Tests      |
-|             |               |                |
-+-------------+               +----------------+
+              |               +^----------------------+
+          +--->  Order Book   <-------+               |
+          |   |               |       |               |
+          |   +---------------+       |               |
+          |                           |               |
+          |                           |               |
+          |                           |               |
++---------+---+               +-------+--------+      |
+|             |               |                |      |
+|    Main     |               |     Tests      |   +--+-------------+
+|             |               |                |   |                |
++-------------+               +----------------+   |   Benchmarks   |
+                                                   |                |
+                                                   +----------------+
 ```
 
 ## Potential improvements
