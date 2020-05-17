@@ -21,6 +21,10 @@ $> cd ./docs/html/
 $> python -m http.server
 ```
 
+## Benchmarks
+
+Some simple benchmarks are included for basic scenarios.
+
 ## Project organization
 
 The order book is implemented as a library. The main executable and the test suite link against this library.
@@ -45,3 +49,4 @@ The order book is implemented as a library. The main executable and the test sui
 
 - Use the order of the map keys to hit the right limits faster instead of iterating too much
 - Send events when trades/cancels happen
+- Enforce more invariants eg. unique order IDs

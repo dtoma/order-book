@@ -16,3 +16,4 @@ add_subdirectory(dependencies)
 # Internal projects
 add_subdirectory(book)
 add_subdirectory(tests)
+add_subdirectory(benchmarks)

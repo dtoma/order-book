@@ -21,6 +21,8 @@ jobs:
       run: cd build && ctest
     - name: Integration test
       run: cd build && cmake --build . --target runbook
+    - name: Benchmarks
+      run: cd build && cmake --build . --target runbench
 
   build-windows:
     runs-on: windows-latest
@@ -36,3 +38,5 @@ jobs:
       run: cd build && ctest
     - name: Integration test
       run: cd build && cmake --build . --target runbook
+    - name: Benchmarks
+      run: cd build && cmake --build . --target runbench
