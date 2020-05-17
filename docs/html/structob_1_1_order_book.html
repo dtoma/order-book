@@ -82,16 +82,16 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a9f67d74b32ccfcdbe111ef14a0bb7bc2"><td class="memItemLeft" align="right" valign="top"><a id="a9f67d74b32ccfcdbe111ef14a0bb7bc2"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structob_1_1_order_book.html#a9f67d74b32ccfcdbe111ef14a0bb7bc2">show_bids</a> () const</td></tr>
-<tr class="memdesc:a9f67d74b32ccfcdbe111ef14a0bb7bc2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Table of asks. <br /></td></tr>
-<tr class="separator:a9f67d74b32ccfcdbe111ef14a0bb7bc2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a941679c147d9d00a08d36506c4d395f6"><td class="memItemLeft" align="right" valign="top"><a id="a941679c147d9d00a08d36506c4d395f6"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structob_1_1_order_book.html#a941679c147d9d00a08d36506c4d395f6">show_asks</a> () const</td></tr>
-<tr class="memdesc:a941679c147d9d00a08d36506c4d395f6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Log the current bids table. <br /></td></tr>
-<tr class="separator:a941679c147d9d00a08d36506c4d395f6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a412ddc1ff38e988202df1bb9de91d23f"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structob_1_1_order_book.html#a412ddc1ff38e988202df1bb9de91d23f">execute_at_limit</a> (std::vector&lt; <a class="el" href="structob_1_1_order.html">Order</a> &gt; &amp;, <a class="el" href="structob_1_1_order.html">Order</a> &amp;)</td></tr>
-<tr class="memdesc:a412ddc1ff38e988202df1bb9de91d23f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Log the current bids table.  <a href="structob_1_1_order_book.html#a412ddc1ff38e988202df1bb9de91d23f">More...</a><br /></td></tr>
+<tr class="memitem:ab8d9a06d60cf5c9ce5802cd03f407c88"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structob_1_1_order_book.html#ab8d9a06d60cf5c9ce5802cd03f407c88">show_bids</a> (spdlog::level::level_enum log_level=spdlog::level::debug) const</td></tr>
+<tr class="memdesc:ab8d9a06d60cf5c9ce5802cd03f407c88"><td class="mdescLeft">&#160;</td><td class="mdescRight">Table of asks.  <a href="structob_1_1_order_book.html#ab8d9a06d60cf5c9ce5802cd03f407c88">More...</a><br /></td></tr>
+<tr class="separator:ab8d9a06d60cf5c9ce5802cd03f407c88"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a098699306c2b7004dadb1152001f7eac"><td class="memItemLeft" align="right" valign="top"><a id="a098699306c2b7004dadb1152001f7eac"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structob_1_1_order_book.html#a098699306c2b7004dadb1152001f7eac">show_asks</a> (spdlog::level::level_enum log_level=spdlog::level::debug) const</td></tr>
+<tr class="memdesc:a098699306c2b7004dadb1152001f7eac"><td class="mdescLeft">&#160;</td><td class="mdescRight">Log the current asks table. <br /></td></tr>
+<tr class="separator:a098699306c2b7004dadb1152001f7eac"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a412ddc1ff38e988202df1bb9de91d23f"><td class="memItemLeft" align="right" valign="top"><a id="a412ddc1ff38e988202df1bb9de91d23f"></a>
+auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structob_1_1_order_book.html#a412ddc1ff38e988202df1bb9de91d23f">execute_at_limit</a> (std::vector&lt; <a class="el" href="structob_1_1_order.html">Order</a> &gt; &amp;, <a class="el" href="structob_1_1_order.html">Order</a> &amp;)</td></tr>
+<tr class="memdesc:a412ddc1ff38e988202df1bb9de91d23f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Execute an order as much as possible at a given limit. <br /></td></tr>
 <tr class="separator:a412ddc1ff38e988202df1bb9de91d23f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3151952dd6a070a736209d909a83f7cf"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structob_1_1_order_book.html#a3151952dd6a070a736209d909a83f7cf">bid</a> (<a class="el" href="structob_1_1_order.html">Order</a> &amp;)</td></tr>
 <tr class="memdesc:a3151952dd6a070a736209d909a83f7cf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Try to add a bid order.  <a href="structob_1_1_order_book.html#a3151952dd6a070a736209d909a83f7cf">More...</a><br /></td></tr>
@@ -163,34 +163,24 @@ Public Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="a412ddc1ff38e988202df1bb9de91d23f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a412ddc1ff38e988202df1bb9de91d23f">&#9670;&nbsp;</a></span>execute_at_limit()</h2>
+<a id="ab8d9a06d60cf5c9ce5802cd03f407c88"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab8d9a06d60cf5c9ce5802cd03f407c88">&#9670;&nbsp;</a></span>show_bids()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">auto ob::OrderBook::execute_at_limit </td>
+          <td class="memname">void ob::OrderBook::show_bids </td>
           <td>(</td>
-          <td class="paramtype">std::vector&lt; <a class="el" href="structob_1_1_order.html">Order</a> &gt; &amp;&#160;</td>
-          <td class="paramname"><em>limit_orders</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structob_1_1_order.html">Order</a> &amp;&#160;</td>
-          <td class="paramname"><em>order</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
+          <td class="paramtype">spdlog::level::level_enum&#160;</td>
+          <td class="paramname"><em>log_level</em> = <code>spdlog::level::debug</code></td><td>)</td>
+          <td> const</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>Log the current bids table. </p>
-<p>Execute an order as much as possible at a given limit. </p>
+<p>Table of asks. </p>
+<p>Log the current bids table </p>
 
 </div>
 </div>

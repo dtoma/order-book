@@ -75,10 +75,13 @@ struct OrderBook final {
     Bids bids;  //! Table of bids
     Asks asks;  //! Table of asks
 
-    void show_bids(spdlog::level::level_enum log_level = spdlog::level::debug)
-        const;  //! Log the current bids table
-    void show_asks(spdlog::level::level_enum log_level = spdlog::level::debug)
-        const;  //! Log the current bids table
+    //! Log the current bids table
+    void show_bids(
+        spdlog::level::level_enum log_level = spdlog::level::debug) const;
+
+    //! Log the current asks table
+    void show_asks(
+        spdlog::level::level_enum log_level = spdlog::level::debug) const;
 
     //! Execute an order as much as possible at a given limit.
     auto execute_at_limit(std::vector<Order> &, Order &);
