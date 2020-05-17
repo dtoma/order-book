@@ -47,6 +47,7 @@ struct OrderBook final {
     void bid(Order &);
     void ask(Order &);
     void cancel(Order const &);
+    void place_order(Order &);
 };
 
 std::vector<std::pair<OrderType, Order>> read_orders_file(std::ifstream &);

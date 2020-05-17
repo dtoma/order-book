@@ -15,19 +15,19 @@ int main(int ac, char** av) {
     spdlog::info("Read {} orders", orders.size());
 
     ob::OrderBook order_book;
-    for (auto& order : orders) {
+    for (auto& type_and_order : orders) {
         order_book.show_bids();
         order_book.show_asks();
-        if (order.first == ob::OrderType::NEW) {
-            if (order.second.side == ob::OrderSide::BUY) {
-                order_book.bid(order.second);
-            } else if (order.second.side == ob::OrderSide::SELL) {
-                order_book.ask(order.second);
-            }
-        } else if (order.first == ob::OrderType::CANCEL) {
-            order_book.cancel(order.second);
+        if (type_and_order.first == ob::OrderType::NEW) {
+            order_book.place_order(type_and_order.second);
+        } else if (type_and_order.first == ob::OrderType::CANCEL) {
+            order_book.cancel(type_and_order.second);
         }
     }
+
+    spdlog::info("Final order book:");
+    order_book.show_bids();
+    order_book.show_asks();
 
     return 0;
 }

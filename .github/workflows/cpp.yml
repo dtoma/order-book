@@ -14,11 +14,13 @@ jobs:
     - name: Create build directory
       run: mkdir build
     - name: CMake file generation
-      run: cd build && cmake ..
+      run: cd build && cmake -DCMAKE_BUILD_TYPE=Debug ..
     - name: Build
       run: cd build && cmake --build .
     - name: Test
       run: cd build && ctest
+    - name: Integration test
+      run: cd build && cmake --build . --target runbook
 
   build-windows:
     runs-on: windows-latest
@@ -27,8 +29,10 @@ jobs:
     - name: Create build directory
       run: mkdir build
     - name: CMake file generation
-      run: cd build && cmake ..
+      run: cd build && cmake -DCMAKE_BUILD_TYPE=Debug ..
     - name: Build
       run: cd build && cmake --build .
     - name: Test
       run: cd build && ctest
+    - name: Integration test
+      run: cd build && cmake --build . --target runbook

@@ -22,3 +22,5 @@ if(MSVC)
 else()
   target_compile_options(main PRIVATE -Wall -Wextra -pedantic -Werror)
 endif()
+
+add_custom_target(runbook COMMAND main ${CMAKE_SOURCE_DIR}/orders.csv)

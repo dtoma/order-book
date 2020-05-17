@@ -2,7 +2,6 @@
 
 #include <algorithm>
 
-#include "fmt/printf.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/spdlog.h"
 
@@ -35,6 +34,16 @@ ob::Order order_from_strings(std::string id, std::string side,
             std::stoi(quantity), std::stoi(price)};
 }
 
+template <typename T>
+void show_table(T const &table) {
+    for (auto const &p : table) {
+        spdlog::info("  {}: ", p.first);
+        for (auto const &order : p.second) {
+            spdlog::info("    {} #{}", order.quantity, order.id);
+        }
+    }
+}
+
 }  // namespace
 
 /**
@@ -48,13 +57,8 @@ void OrderBook::show_bids() const {
         return;
     }
 
-    spdlog::info("Bids:");
-    for (auto const &p : this->bids) {
-        spdlog::info("  {}: ", p.first);
-        for (auto const &order : p.second) {
-            spdlog::info("    #{} {}", order.id, order.quantity);
-        }
-    }
+    spdlog::info("===== Bids =====");
+    show_table(this->bids);
 }
 
 void OrderBook::show_asks() const {
@@ -63,13 +67,8 @@ void OrderBook::show_asks() const {
         return;
     }
 
-    spdlog::info("Asks:");
-    for (auto const &p : this->asks) {
-        spdlog::info("  {}: ", p.first);
-        for (auto const &order : p.second) {
-            spdlog::info("    #{} {}", order.id, order.quantity);
-        }
-    }
+    spdlog::info("===== Asks =====");
+    show_table(this->asks);
 }
 
 auto OrderBook::execute_at_limit(std::vector<Order> &limit_orders,
@@ -131,12 +130,22 @@ void OrderBook::ask(Order &order) {
     }
 }
 
+void OrderBook::place_order(Order &order) {
+    if (order.side == ob::OrderSide::BUY) {
+        this->bid(order);
+    } else if (order.side == ob::OrderSide::SELL) {
+        this->ask(order);
+    }
+}
+
 void OrderBook::cancel(Order const &order) {
+    spdlog::info("Trying to cancel id={}", order.id);
     if (order.side == OrderSide::BUY) {
         auto limit = this->bids[order.price];
         auto to_delete = std::find_if(std::begin(limit), std::end(limit),
                                       [&](auto o) { return o.id == order.id; });
         if (to_delete == std::end(limit)) {
+            spdlog::info("Order id={} not found", order.id);
             return;
         }
         limit.erase(to_delete);
@@ -149,6 +158,7 @@ void OrderBook::cancel(Order const &order) {
         auto to_delete = std::find_if(std::begin(limit), std::end(limit),
                                       [&](auto o) { return o.id == order.id; });
         if (to_delete == std::end(limit)) {
+            spdlog::info("Order id={} not found", order.id);
             return;
         }
         limit.erase(to_delete);
@@ -173,7 +183,7 @@ std::vector<std::pair<OrderType, Order>> read_orders_file(
                        });
         auto order_type = StringToOrderType.find(tokens[0]);
         if (order_type == std::end(StringToOrderType)) {
-            spdlog::error("Invalid line [{}]", line);
+            spdlog::error("Invalid order type in line [{}]", line);
             continue;
         }
         orders.emplace_back(
