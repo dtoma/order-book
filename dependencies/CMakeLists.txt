@@ -10,10 +10,6 @@ FetchContent_Declare(fmt
     GIT_TAG 6.1.2
 )
 
-FetchContent_Declare(benchmark
-    GIT_REPOSITORY https://github.com/google/benchmark
-)
-
 FetchContent_Declare(spdlog
     GIT_REPOSITORY https://github.com/gabime/spdlog
     GIT_TAG v1.6.0
@@ -26,7 +22,6 @@ set(BENCHMARK_ENABLE_TESTING OFF)
 
 FetchContent_MakeAvailable(
     googletest
-    benchmark
     fmt
     spdlog
 )
