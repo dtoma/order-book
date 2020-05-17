@@ -2,30 +2,28 @@
 #include "spdlog/spdlog.h"
 
 int main(int ac, char** av) {
-    if (ac < 2) {
+    if (ac != 2) {
         spdlog::error("Usage: {} orders_file_path", av[0]);
         return 1;
     }
 
     std::string file_path(av[1]);
 
-    spdlog::info("Opening file {}", file_path);
+    spdlog::debug("Opening file {}", file_path);
     std::ifstream file_stream(file_path);
+    if (!file_stream) {
+        spdlog::error("Could not open file {}", file_path);
+        return 1;
+    }
 
-    spdlog::info("Load orders from file", file_path);
+    spdlog::debug("Load orders from file", file_path);
     auto orders = ob::read_orders_file(file_stream);
-    spdlog::info("Loaded {} orders", orders.size());
+    spdlog::debug("Loaded {} orders", orders.size());
 
-    spdlog::info("Initial order book:");
     ob::OrderBook order_book;
-    order_book.show_bids();
-    order_book.show_asks();
 
     for (auto& type_and_order : orders) {
-        spdlog::info("\n");
         auto& order = type_and_order.second;
-        spdlog::info("Order id={} quantity={} price={}", order.id,
-                     order.quantity, order.price);
 
         switch (type_and_order.first) {
             case ob::OrderType::NEW:
@@ -36,16 +34,14 @@ int main(int ac, char** av) {
                 break;
         }
 
-        spdlog::info("Order book is now:");
+        spdlog::debug("Order book is now:");
         order_book.show_bids();
         order_book.show_asks();
     }
 
-    spdlog::info("\n");
-
     spdlog::info("Final order book:");
-    order_book.show_bids();
-    order_book.show_asks();
+    order_book.show_bids(spdlog::level::info);
+    order_book.show_asks(spdlog::level::info);
 
     return 0;
 }

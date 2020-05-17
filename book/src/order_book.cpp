@@ -55,11 +55,11 @@ ob::Order order_from_strings(std::string id, std::string side,
  * [2020-05-17 17:15:05.543] [info]     1 #100000
  */
 template <typename T>
-void show_table(T const &table) {
+void show_table(T const &table, spdlog::level::level_enum log_level) {
     for (auto const &p : table) {
-        spdlog::info("  {}: ", p.first);
+        spdlog::log(log_level, "  {}: ", p.first);
         for (auto const &order : p.second) {
-            spdlog::info("    {} #{}", order.quantity, order.id);
+            spdlog::log(log_level, "    {} #{}", order.quantity, order.id);
         }
     }
 }
@@ -72,18 +72,23 @@ template <typename Table>
 auto erase_order(Table &table, ob::Order const &order) {
     auto find_limit = table.find(order.price);
     if (find_limit == std::end(table)) {
-        spdlog::info("No orders at price={}", order.price);
+        spdlog::debug("Cancel: no orders at price={}", order.price);
         return;
     }
+
     auto &limit = find_limit->second;
     auto to_delete = std::find_if(std::begin(limit), std::end(limit),
                                   [&](auto o) { return o.id == order.id; });
+
     if (to_delete == std::end(limit)) {
-        spdlog::info("Order id={} price={} not found", order.id, order.price);
+        spdlog::debug("Cancel: id={} not found", order.id);
         return;
     }
+
+    spdlog::info("Cancel id={} quantity={} price={}", to_delete->id,
+                 to_delete->quantity, to_delete->price);
     limit.erase(to_delete);
-    spdlog::info("Cancelled order id={}", order.id);
+
     if (limit.empty()) {
         table.erase(order.price);
     }
@@ -95,24 +100,24 @@ auto erase_order(Table &table, ob::Order const &order) {
  */
 namespace ob {
 
-void OrderBook::show_bids() const {
+void OrderBook::show_bids(spdlog::level::level_enum log_level) const {
     if (this->bids.empty()) {
-        spdlog::info("No bids");
+        spdlog::log(log_level, "No bids");
         return;
     }
 
-    spdlog::info("===== Bids =====");
-    show_table(this->bids);
+    spdlog::log(log_level, "===== Bids =====");
+    show_table(this->bids, log_level);
 }
 
-void OrderBook::show_asks() const {
+void OrderBook::show_asks(spdlog::level::level_enum log_level) const {
     if (this->asks.empty()) {
-        spdlog::info("No asks");
+        spdlog::log(log_level, "No asks");
         return;
     }
 
-    spdlog::info("===== Asks =====");
-    show_table(this->asks);
+    spdlog::log(log_level, "===== Asks =====");
+    show_table(this->asks, log_level);
 }
 
 auto OrderBook::execute_at_limit(std::vector<Order> &limit_orders,
@@ -122,7 +127,7 @@ auto OrderBook::execute_at_limit(std::vector<Order> &limit_orders,
         if (potential_match->quantity > order.quantity) {
             // Full execution, leftover quantity in the book
             spdlog::info(
-                "{} shares sold at {} (book order id={} partially filled, {} "
+                "{} share(s) sold at {} (book order id={} partially filled, {} "
                 "remaining)",
                 order.quantity, potential_match->price, potential_match->id,
                 potential_match->quantity - order.quantity);
@@ -151,7 +156,8 @@ auto OrderBook::execute_at_limit(std::vector<Order> &limit_orders,
 void OrderBook::bid(Order &order) {
     auto limit = std::begin(this->asks);
     auto stop = std::end(this->asks);
-    while (limit != stop && limit->first <= order.price) {
+
+    while (limit != stop && limit->first <= order.price && order.quantity) {
         this->execute_at_limit(limit->second, order);
         if (limit->second.empty()) {
             limit = this->asks.erase(limit);
@@ -159,16 +165,19 @@ void OrderBook::bid(Order &order) {
             ++limit;
         }
     }
+
     if (order.quantity > 0) {
-        spdlog::info("Add a new bid id={} quantity={} price={}", order.id,
-                     order.quantity, order.price);
+        spdlog::info("Bid id={} quantity={} price={}", order.id, order.quantity,
+                     order.price);
         this->bids[order.price].push_back(order);
     }
 }
 
 void OrderBook::ask(Order &order) {
     auto limit = std::begin(this->bids);
-    while (limit != std::end(this->bids) && limit->first >= order.price) {
+    auto stop = std::end(this->bids);
+
+    while (limit != stop && limit->first >= order.price && order.quantity) {
         execute_at_limit(limit->second, order);
         if (limit->second.empty()) {
             limit = this->bids.erase(limit);
@@ -176,9 +185,10 @@ void OrderBook::ask(Order &order) {
             ++limit;
         }
     }
+
     if (order.quantity > 0) {
-        spdlog::info("Add a new ask id={} quantity={} price={}", order.id,
-                     order.quantity, order.price);
+        spdlog::info("Ask id={} quantity={} price={}", order.id, order.quantity,
+                     order.price);
         this->asks[order.price].push_back(order);
     }
 }
@@ -197,7 +207,7 @@ void OrderBook::place_order(Order &order) {
 }
 
 void OrderBook::cancel(Order const &order) {
-    spdlog::info("Trying to cancel id={}", order.id);
+    spdlog::debug("Trying to cancel id={}", order.id);
     // Since we use an enum, we would get a warning if our switch wasn't
     // exhaustive
     switch (order.side) {
@@ -217,7 +227,7 @@ std::vector<std::pair<OrderType, Order>> read_orders_file(
     tokens.reserve(5);
 
     for (std::string line; std::getline(file_stream, line);) {
-        spdlog::info(line);
+        spdlog::debug("Order text: {}", line);
         for_each_token(std::begin(line), std::end(line), ',',
                        [&tokens](auto start, auto finish) {
                            tokens.emplace_back(start, finish);
